@@ -17,10 +17,12 @@ app.add_middleware(
 # Registrar el router de solicitudes
 app.include_router(solicitudes_router, prefix="/api")
 
+
 # Ruta de prueba para verificar que el servidor está funcionando
 @app.get("/")
 async def root():
     return {"message": "Backend funcionando correctamente"}
+        
 
     # codigo para correr el backend uvicorn main:app --reload
     
