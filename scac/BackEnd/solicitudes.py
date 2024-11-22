@@ -19,7 +19,7 @@ async def process_files(file1: UploadFile = File(...), file2: UploadFile = File(
             raise HTTPException(status_code=500, detail="La plantilla no fue encontrada en el servidor.")
         
         # Procesar los archivos
-        resultado = procesar_archivo_instructores(file1.file, file2.file, plantilla_path)
+        resultado = procesar_archivo_instructores(file1.file, file2.file)
 
         # Comprobar si se generó correctamente el archivo
         if resultado is None:
