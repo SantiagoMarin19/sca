@@ -13,9 +13,12 @@ function PagePrincipal() {
   };
 
   const handleSubmit = async () => {
+
     if (!file1 || !file2) {
       alert("Por favor, selecciona ambos archivos.");
       return;
+   
+
     }
 
     const formData = new FormData();
@@ -48,6 +51,8 @@ function PagePrincipal() {
     } catch (error) {
       console.error("Error al procesar los archivos:", error);
     }
+    
+
   };
 
   return (
