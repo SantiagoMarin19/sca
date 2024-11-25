@@ -55,25 +55,30 @@ def procesar_archivo_instructores(file_instru, file_sofia):
     logger.info(f"Registros filtrados en Sofía: {len(sofia_filtrado)}")
 
     # Crear columnas de comparación en formato de texto
-    instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"].astype(str)
-    sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"].astype(str)
+    instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"].astype(str).str.strip().str.replace(r'\D', '', regex=True)
+    sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"].astype(str).str.strip().str.replace(r'\D', '', regex=True)
 
     # Realizar la validación
     validacion_df = pd.merge(
         instru_df,
         sofia_filtrado,
-        on=['DOCUMENTO_DE_IDENTIFICACION_COMP'],
+        left_on="DOCUMENTO_DE_IDENTIFICACION_COMP",
+        right_on="DOCUMENTO_DE_IDENTIFICACION_COMP",
         how='outer',
-        suffixes=('_instru', '_sofia')
+        suffixes=('_instru', '_sofia'),
+        indicator=True
     )
+    
+    
+    validacion_df.drop(columns=["DOCUMENTO_DE_IDENTIFICACION_COMP"], inplace=True)
 
     # Consolidar filas y manejar discrepancias en una sola fila
     def verificar_discrepancias(row):
         discrepancias = []
         if pd.isna(row['DOCUMENTO_DE_IDENTIFICACION_INSTRU']) and not pd.isna(row['DOCUMENTO_DE_IDENTIFICACION_SOFIA']):
-            discrepancias.append("Discrepancias en el documento de identificacion ")
+            discrepancias.append("Documento sólo en Sofía")
         elif not pd.isna(row['DOCUMENTO_DE_IDENTIFICACION_INSTRU']) and pd.isna(row['DOCUMENTO_DE_IDENTIFICACION_SOFIA']):
-            discrepancias.append("Discrepancias en el documento de identificacion ")
+            discrepancias.append("Documento sólo en Instructores")
         else:
             if row['TIPO_INSTRU'] != row['TIPO_SOFIA']:
                 discrepancias.append(f"Discrepancia en Tipo de Documento: Instructores ({row['TIPO_INSTRU']}) vs Sofía ({row['TIPO_SOFIA']})")
@@ -84,10 +89,15 @@ def procesar_archivo_instructores(file_instru, file_sofia):
 
     validacion_df['COINCIDENCIA'] = validacion_df.apply(verificar_discrepancias, axis=1)
 
+    # Eliminar duplicados basándose en columnas clave
+    validacion_df.drop_duplicates(subset=[
+        "FICHA", "DOCUMENTO_DE_IDENTIFICACION_INSTRU", "DOCUMENTO_DE_IDENTIFICACION_SOFIA"
+    ], keep='first', inplace=True)
+
     # Renombrar columnas y reordenar
     columnas_ordenadas = [
         "FICHA", "TIPO_PROGRAMA", "NIVEL_FORMACION", "DENOMINACION_PROGRAMA",
-        "TIPO_INSTRU", "TIPO_SOFIA", 
+        "TIPO_INSTRU", "TIPO_SOFIA",
         "DOCUMENTO_DE_IDENTIFICACION_INSTRU", "DOCUMENTO_DE_IDENTIFICACION_SOFIA",
         "NOMBRE_COMPLETO_SENA_INSTRU", "NOMBRE_COMPLETO_SENA_SOFIA", "COINCIDENCIA"
     ]
