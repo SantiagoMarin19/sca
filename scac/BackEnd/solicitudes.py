@@ -1,6 +1,8 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
+from procesamiento import procesar_archivo_instructores
+
 import traceback
 import os
 from io import BytesIO

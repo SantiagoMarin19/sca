@@ -1,7 +1,17 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import "./Pageprincipal.css"
 
-function PagePrincipal() {
+function PagePrincipal ({handleLogout}) {
+  const navigate = useNavigate();
+  
+  const navigateToLogin = () => {
+    navigate("/login");
+
+
+  }// Hook de react-router para navegación
+
   const [file1, setFile1] = useState(null);
   const [file2, setFile2] = useState(null);
 
@@ -52,7 +62,6 @@ function PagePrincipal() {
     } catch (error) {
       console.error("Error al procesar los archivos:", error);
     }
-    window.location.reload();
 
 
   };
@@ -92,6 +101,7 @@ function PagePrincipal() {
       <input className="ArchivoInstru" type="file" onChange={handleFile1Change} />
       <input className="ArchivoSofia" type="file" onChange={handleFile2Change} />
       <button onClick={handleSubmit}>Descargar</button>
+      <button onClick={handleLogout}>Cerrar sesión</button>
     </div>
   );
 }

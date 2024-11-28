@@ -6,6 +6,7 @@ import PagePrincipal from "../src/componentes/Pageprincipal/Pageprincipal";
 const App = () => {
     const [token, setToken] = useState(localStorage.getItem("token"));
 
+    // Lógica para manejar el cierre de sesión
     const handleLogout = () => {
         setToken(null);
         localStorage.removeItem("token"); // Eliminar el token al cerrar sesión
@@ -16,9 +17,13 @@ const App = () => {
             <Routes>
                 {/* Ruta de Inicio de Sesión */}
                 <Route
-                    path="/"
+                    path="/login"
                     element={
-                        token ? <Navigate to="/principal" replace /> : <Inicio setToken={setToken} />
+                        token ? (
+                            <Navigate to="/principal" replace /> // Si ya hay un token, redirige al principal
+                        ) : (
+                            <Inicio setToken={setToken} /> // Muestra el componente de login
+                        )
                     }
                 />
 
@@ -27,15 +32,15 @@ const App = () => {
                     path="/principal"
                     element={
                         token ? (
-                            <PagePrincipal handleLogout={handleLogout} />
+                            <PagePrincipal handleLogout={handleLogout} /> // Si hay token, muestra la página principal
                         ) : (
-                            <Navigate to="/" replace />
+                            <Navigate to="/login" replace /> // Si no hay token, redirige al login
                         )
                     }
                 />
 
                 {/* Ruta no encontrada */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         </Router>
     );
