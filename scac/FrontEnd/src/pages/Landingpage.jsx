@@ -1,5 +1,5 @@
 import React from "react"
-import Pageprincipal from "../componentes/Pageprincipal";
+import Pageprincipal from "../componentes/Pageprincipal/Pageprincipal";
 
 const Moduloarchivo = () => {
     return (

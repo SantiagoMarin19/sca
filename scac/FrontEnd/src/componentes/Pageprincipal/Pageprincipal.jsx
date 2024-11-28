@@ -1,0 +1,99 @@
+import React, { useState } from "react";
+import "./Pageprincipal.css"
+
+function PagePrincipal() {
+  const [file1, setFile1] = useState(null);
+  const [file2, setFile2] = useState(null);
+
+  const handleFile1Change = (e) => {
+    setFile1(e.target.files[0]);
+  };
+
+  const handleFile2Change = (e) => {
+    setFile2(e.target.files[0]);
+  };
+
+  const handleSubmit = async () => {
+
+    if (!file1 || !file2) {
+      alert("Por favor, selecciona ambos archivos.");
+      return;
+
+
+    }
+
+    const formData = new FormData();
+    formData.append("file1", file1);
+    formData.append("file2", file2);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/process-files/", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const contentType = response.headers.get("Content-Type");
+        if (contentType === "application/json") {
+          const result = await response.json();
+          console.log("Resultado:", result);
+        } else {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "resultado.xlsx";
+          a.click();
+          console.log("Archivo descargado exitosamente.");
+        }
+      } else {
+        console.error("Error en el servidor:", await response.text());
+      }
+    } catch (error) {
+      console.error("Error al procesar los archivos:", error);
+    }
+    window.location.reload();
+
+
+  };
+
+  return (
+    <div className="Contenedorprincipal">
+      <div className="instrucciones">
+        <h2 className="InstruccionesTitulo">Bienvenido al Asistente de Validación Sofía Plus </h2>
+        <p className="parrafoinstruccioens">Este asistente te guiará paso a paso en el proceso de validación de tus archivos de Sofía Plus para la certificación de aprendices.</p>
+        <div className="cajonquepuedeshacer">
+          <h2 className="titulocajon">Que puede hacer aqui</h2>
+          <ul className="listadequehacer">
+            <li className="listacajon">
+              <span className="spancajon">
+                Cargar archivos .XLSX de Sofía Plus
+              </span>
+            </li>
+            <li className="listacajon">
+              <span className="spancajon">
+                Validar información de aprendices
+              </span>
+            </li>
+            <li className="listacajon">
+              <span className="spancajon">
+                Generar reportes consolidados
+              </span>
+            </li>
+          </ul>
+        </div>
+
+
+
+
+      </div>
+
+ 
+      <input className="ArchivoInstru" type="file" onChange={handleFile1Change} />
+      <input className="ArchivoSofia" type="file" onChange={handleFile2Change} />
+      <button onClick={handleSubmit}>Descargar</button>
+    </div>
+  );
+}
+
+export default PagePrincipal;

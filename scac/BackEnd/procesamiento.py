@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import logging
 
 # Configuración del logger
@@ -7,35 +8,44 @@ logger = logging.getLogger(__name__)
 
 def procesar_archivo_instructores(file_instru, file_sofia):
     # Leer archivo de instructores
-    instru_df = pd.read_excel(file_instru, sheet_name="Validar nombre aprendiz", header=None)
+    logger.info("Leyendo el archivo de instructores...")
+    instru_df = pd.read_excel(file_instru, sheet_name="Validar nombre aprendiz", header=None, dtype=str)
+    logger.info("Archivo de instructores leído correctamente.")
 
     # Validar que la celda D2 contiene el Código de Ficha
+    logger.info("Extrayendo el Código de Ficha de la celda D2...")
     try:
         codigo_ficha = instru_df.iloc[1, 3]  # Fila 2, columna 4 (D2)
         if pd.isna(codigo_ficha):
             raise ValueError("La celda D2 está vacía o no contiene un Código de Ficha válido.")
+        logger.info(f"Código de Ficha identificado: {codigo_ficha}")
     except IndexError:
+        logger.error("No se encontró la celda D2 en la hoja especificada.")
         raise ValueError("No se encontró la celda D2 en la hoja especificada.")
 
-    logger.info(f"Código de Ficha identificado: {codigo_ficha}")
-
     # Tomar encabezados de la fila 10
+    logger.info("Extrayendo encabezados de la fila 10...")
     encabezados = instru_df.iloc[9]
     instru_df = instru_df.iloc[10:]  # Eliminar filas hasta la fila 10
     instru_df.columns = encabezados
     instru_df.reset_index(drop=True, inplace=True)
+    logger.info(f"Columnas extraídas del archivo de instructores: {list(instru_df.columns)}")
 
     # Renombrar columnas de instructores
+    logger.info("Renombrando columnas en el archivo de instructores...")
     instru_df.rename(columns={
         "Tipo": "TIPO_INSTRU",
         "Documento de identificación": "DOCUMENTO_DE_IDENTIFICACION_INSTRU",
         "Nombre completo SENA": "NOMBRE_COMPLETO_SENA_INSTRU"
     }, inplace=True)
+    logger.info(f"Columnas renombradas de instructores: {list(instru_df.columns)}")
 
     # Filtrar datos sin nombre o identificación
+    logger.info("Filtrando filas sin nombre o identificación en instructores...")
     instru_df.dropna(subset=["NOMBRE_COMPLETO_SENA_INSTRU", "DOCUMENTO_DE_IDENTIFICACION_INSTRU"], inplace=True)
 
     # Leer archivo Sofía desde la fila correcta
+    logger.info("Leyendo el archivo de Sofía...")
     sofia_df = pd.read_excel(file_sofia, header=1)  # Leer desde fila 2
     sofia_df.rename(columns={
         "Ficha": "FICHA",
@@ -46,55 +56,69 @@ def procesar_archivo_instructores(file_instru, file_sofia):
         "No. Documento": "DOCUMENTO_DE_IDENTIFICACION_SOFIA",
         "Nombre Aprendiz": "NOMBRE_COMPLETO_SENA_SOFIA"
     }, inplace=True)
+    logger.info(f"Columnas extraídas del archivo de Sofía: {list(sofia_df.columns)}")
 
     # Filtrar registros de Sofía por Código Ficha
+    logger.info(f"Filtrando registros de Sofía por el Código de Ficha: {codigo_ficha}...")
     sofia_filtrado = sofia_df[sofia_df["FICHA"] == int(codigo_ficha)]
     if sofia_filtrado.empty:
         logger.error(f"No se encontraron registros en Sofía para la ficha {codigo_ficha}.")
         raise ValueError(f"No se encontraron registros en Sofía para la ficha {codigo_ficha}.")
     logger.info(f"Registros filtrados en Sofía: {len(sofia_filtrado)}")
 
-    # Crear columnas de comparación en formato de texto
-    instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"].astype(str).str.strip().str.replace(r'\D', '', regex=True)
-    sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"].astype(str).str.strip().str.replace(r'\D', '', regex=True)
+    # Función para limpiar y convertir números de documento
+    def limpiar_documento(doc):
+        # Convertir a cadena, eliminar espacios y caracteres no numéricos
+        doc_str = str(doc).replace('E+', '').replace('.', '')
+        return ''.join(filter(str.isdigit, doc_str))
 
-    # Realizar la validación
+    # Crear columnas de comparación en formato de texto
+    logger.info("Preparando columnas de comparación...")
+    instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"].apply(limpiar_documento)
+    sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"].apply(limpiar_documento)
+
+    # Realizar la validación con merge preferencial
+    logger.info("Comenzando la validación y comparación de datos...")
     validacion_df = pd.merge(
         instru_df,
-        sofia_filtrado,
+        sofia_filtrado,                                                                                                                                                                     
         left_on="DOCUMENTO_DE_IDENTIFICACION_COMP",
         right_on="DOCUMENTO_DE_IDENTIFICACION_COMP",
         how='outer',
-        suffixes=('_instru', '_sofia'),
-        indicator=True
+        suffixes=('_instru', '_sofia')
     )
-    
-    
-    validacion_df.drop(columns=["DOCUMENTO_DE_IDENTIFICACION_COMP"], inplace=True)
 
-    # Consolidar filas y manejar discrepancias en una sola fila
     def verificar_discrepancias(row):
         discrepancias = []
+        
+        # Comparación de todos los datos como texto
         if pd.isna(row['DOCUMENTO_DE_IDENTIFICACION_INSTRU']) and not pd.isna(row['DOCUMENTO_DE_IDENTIFICACION_SOFIA']):
             discrepancias.append("Documento sólo en Sofía")
         elif not pd.isna(row['DOCUMENTO_DE_IDENTIFICACION_INSTRU']) and pd.isna(row['DOCUMENTO_DE_IDENTIFICACION_SOFIA']):
             discrepancias.append("Documento sólo en Instructores")
         else:
-            if row['TIPO_INSTRU'] != row['TIPO_SOFIA']:
-                discrepancias.append(f"Discrepancia en Tipo de Documento: Instructores ({row['TIPO_INSTRU']}) vs Sofía ({row['TIPO_SOFIA']})")
-            if row['NOMBRE_COMPLETO_SENA_INSTRU'] != row['NOMBRE_COMPLETO_SENA_SOFIA']:
-                discrepancias.append(f"Discrepancia en Nombre: Instructores ({row['NOMBRE_COMPLETO_SENA_INSTRU']}) vs Sofía ({row['NOMBRE_COMPLETO_SENA_SOFIA']})")
+            # Comparar Tipo de Documento
+            tipo_instru = str(row['TIPO_INSTRU']).strip()
+            tipo_sofia = str(row['TIPO_SOFIA']).strip()
+            if tipo_instru != tipo_sofia:
+                discrepancias.append(f"Discrepancia en Tipo de Documento: Instructores ({tipo_instru}) vs Sofía ({tipo_sofia})")
+            
+            # Comparar Nombre Completo
+            nombre_instru = str(row['NOMBRE_COMPLETO_SENA_INSTRU']).strip()
+            nombre_sofia = str(row['NOMBRE_COMPLETO_SENA_SOFIA']).strip()
+            if nombre_instru != nombre_sofia:
+                discrepancias.append(f"Discrepancia en Nombre: Instructores ({nombre_instru}) vs Sofía ({nombre_sofia})")
 
         return "FALSO - " + "; ".join(discrepancias) if discrepancias else "VERDADERO"
 
+    # Agregar columna de coincidencia
     validacion_df['COINCIDENCIA'] = validacion_df.apply(verificar_discrepancias, axis=1)
 
-    # Eliminar duplicados basándose en columnas clave
-    validacion_df.drop_duplicates(subset=[
-        "FICHA", "DOCUMENTO_DE_IDENTIFICACION_INSTRU", "DOCUMENTO_DE_IDENTIFICACION_SOFIA"
-    ], keep='first', inplace=True)
+    # Eliminar duplicados basados en el número de documento limpio
+    validacion_df.drop_duplicates(subset=['DOCUMENTO_DE_IDENTIFICACION_COMP'], keep='first', inplace=True)
 
-    # Renombrar columnas y reordenar
+    # Renombrar columnas y reordenando
+    logger.info("Renombrando columnas y reordenando...")
     columnas_ordenadas = [
         "FICHA", "TIPO_PROGRAMA", "NIVEL_FORMACION", "DENOMINACION_PROGRAMA",
         "TIPO_INSTRU", "TIPO_SOFIA",
@@ -102,7 +126,6 @@ def procesar_archivo_instructores(file_instru, file_sofia):
         "NOMBRE_COMPLETO_SENA_INSTRU", "NOMBRE_COMPLETO_SENA_SOFIA", "COINCIDENCIA"
     ]
     validacion_df = validacion_df[columnas_ordenadas]
-
     validacion_df.rename(columns={
         "FICHA": "Ficha",
         "TIPO_PROGRAMA": "Tipo Programa",
@@ -117,7 +140,6 @@ def procesar_archivo_instructores(file_instru, file_sofia):
         "COINCIDENCIA": "COINCIDENCIA"
     }, inplace=True)
 
-    # Guardar el resultado en un archivo Excel
     output_path = "resultado_validacion.xlsx"
     validacion_df.to_excel(output_path, index=False)
     logger.info(f"Archivo de resultado guardado en: {output_path}")

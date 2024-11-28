@@ -1,12 +1,24 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.responses import StreamingResponse
-from procesamiento import procesar_archivo_instructores
+from fastapi.security import OAuth2PasswordRequestForm
 import traceback
 import os
 from io import BytesIO
 
+
 router = APIRouter()
 
+# Ruta de inicio de sesión
+@router.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    # Credenciales hardcodeadas para uso local
+    if form_data.username == "admin" and form_data.password == "admin123":
+        return {"access_token": "your_token_here", "token_type": "bearer"}
+    # Lanzar error si las credenciales no son válidas
+    raise HTTPException(status_code=400, detail="Credenciales inválidas")
+
+
+# Ruta para procesar archivos (ya existente)
 @router.post("/process-files/")
 async def process_files(file1: UploadFile = File(...), file2: UploadFile = File(...)):
     """
