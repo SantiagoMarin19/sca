@@ -1,11 +1,48 @@
 import pandas as pd
 import numpy as np
 import logging
+import openpyxl
+from openpyxl.styles import PatternFill, Font, Alignment
 
 # Configuración del logger
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+def ajustar_ancho_columnas(archivo):
+    # Cargar el archivo Excel con openpyxl
+    wb = openpyxl.load_workbook(archivo)
+    hoja = wb.active
+
+    # Ajustar automáticamente el ancho de cada columna según el contenido más largo
+    for columna in hoja.columns:
+        max_length = 0
+        columna_letra = columna[0].column_letter  # Obtener la letra de la columna
+        for celda in columna:
+            try:
+                if celda.value:
+                    max_length = max(max_length, len(str(celda.value)))
+            except Exception as e:
+                logger.warning(f"Error ajustando la celda {celda.coordinate}: {e}")
+
+        # Asignar ancho ajustado a la columna
+        hoja.column_dimensions[columna_letra].width = max_length + 2  
+        logger.info("Aplicando formato a los encabezados...")
+    encabezado_fila = hoja[1]  # Primera fila (encabezados)
+    estilo_encabezado = {
+        "fill": PatternFill(start_color="C6D8FD", end_color="C6D8FD", fill_type="solid"),
+        "font": Font(size=12, bold=True, color="000000"),
+        "alignment": Alignment(horizontal="center", vertical="center"),
+    }
+
+    for celda in encabezado_fila:
+        celda.fill = estilo_encabezado["fill"]
+        celda.font = estilo_encabezado["font"]
+        celda.alignment = estilo_encabezado["alignment"]    
+            # Margen adicional para mayor claridad
+
+    # Guardar los cambios en el archivo
+    wb.save(archivo)
+    logger.info(f"Ancho de columnas ajustado automáticamente en el archivo: {archivo}")
 def procesar_archivo_instructores(file_instru, file_sofia):
     # Leer archivo de instructores
     logger.info("Leyendo el archivo de instructores...")
@@ -76,6 +113,9 @@ def procesar_archivo_instructores(file_instru, file_sofia):
     logger.info("Preparando columnas de comparación...")
     instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"].apply(limpiar_documento)
     sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"].apply(limpiar_documento)
+    
+    instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"]
+    sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"]
 
     # Realizar la validación con merge preferencial
     logger.info("Comenzando la validación y comparación de datos...")
@@ -142,6 +182,7 @@ def procesar_archivo_instructores(file_instru, file_sofia):
 
     output_path = "resultado_validacion.xlsx"
     validacion_df.to_excel(output_path, index=False)
+    ajustar_ancho_columnas(output_path)
     logger.info(f"Archivo de resultado guardado en: {output_path}")
 
     return open(output_path, "rb")

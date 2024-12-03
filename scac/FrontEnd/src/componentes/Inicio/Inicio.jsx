@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./Inicio.css";
-import sena from '../../assets/img/senaimg.png';
+import sena from '../../assets/img/logosena.png';
 import axios from "axios";
 
 const Inicio = ({ setToken }) => {
@@ -71,7 +71,7 @@ const Inicio = ({ setToken }) => {
             {/* Columna derecha */}
             <div className="columnaderecha">
                 <div className="textocolumnaderecho">
-                    <img src={sena} alt="LogoSena" className="imgsena" />
+                    <img src={sena} alt="LogoSena" className="imgsenaverde" />
                     <h1 className="titulosena">SCA</h1>
                     <h2 className="titulosena">Sistema De Certificación De Aprendices</h2>
                     <span className="mensajecolumnaderecha">
