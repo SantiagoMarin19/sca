@@ -2,3 +2,25 @@ fastapi
 uvicorn
 pandas
 openpyxl
+BackEnd/
+│
+├── components/
+│   ├── __init__.py
+│   ├── logger_config.py
+│   ├── excel_utils.py
+│   └── data_processor.py
+│
+├── routes/
+│   ├── __init__.py
+│   └── api.py
+│
+├── utils/
+│   ├── __init__.py
+│   └── excel_utils.py  (el archivo existente)
+│
+├── main.py
+├── procesamiento.py
+├── solicitudes.py
+├── login.py
+├── requerimientos.txt
+└── README.md

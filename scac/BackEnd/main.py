@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from solicitudes import router as solicitudes_router
+from routes.api import router as api_router
 
 # Crear una instancia de FastAPI
 app = FastAPI()
@@ -14,16 +14,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Registrar el router de solicitudes
-app.include_router(solicitudes_router, prefix="/api")
-
+# Registrar el router de la API
+app.include_router(api_router, prefix="/api")
 
 # Ruta de prueba para verificar que el servidor está funcionando
 @app.get("/")
 async def root():
     return {"message": "Backend funcionando correctamente"}
-        
 
-    # codigo para correr el backend uvicorn main:app --reload
-    
-
+# El código para correr el backend sigue siendo: uvicorn main:app --reload

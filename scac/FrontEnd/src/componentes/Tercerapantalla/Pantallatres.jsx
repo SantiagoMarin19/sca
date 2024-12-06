@@ -22,7 +22,7 @@ function Pantallatres({ file2, setFile2, fileInputRef, handleRemoveFile2, handle
                         El archivo debe estar en formato .xlsx o .xls (Excel).
                     </span>
                     <span className="spanbienvenida">
-                        Recomendaciones: asegúrate de que el archivo contenga celdas llenas y no tenga errores de formato.
+                        Recomendaciones: Asegurate que el archivo (SOFIA) contenga la misma ficha que el archivo anteriormente
                     </span>
                 </div>
                 <div className="listado">
@@ -84,7 +84,7 @@ function Pantallatres({ file2, setFile2, fileInputRef, handleRemoveFile2, handle
             )}
 
             <div className="buttonorganizado">
-                <button className="botonescontinuar" onClick={() => handleScreenChange("result")}>Siguiente</button>
+                <button className="botonescontinuar" onClick={() => handleScreenChange("juicios")}>Siguiente</button>
                 <button className="botonescontinuar" onClick={() => handleScreenChange("upload")}>Volver</button>
             </div>
         </div>

@@ -83,7 +83,7 @@ function Pantallados({ file1, setFile1, fileInputRef, handleRemoveFile1, handleS
             )}
             {file1 && (
                 <div className="buttonorganizado">
-                    <button className="botonescontinuar" onClick={() => handleScreenChange("processing")}>
+                    <button className="botonescontinuar" onClick={() => handleScreenChange("sofia")}>
                         CONTINUAR
                     </button>
                 </div>

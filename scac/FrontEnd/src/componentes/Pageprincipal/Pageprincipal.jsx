@@ -1,16 +1,20 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import sena from '../../assets/img/logosena.png';
-import logosofia from '../../assets/img/logosofiacopia.png';
 import Pantallados from "../Segundapantalla/Pantallados";
 import Pantallatres from "../Tercerapantalla/Pantallatres";
+import Pantallajuicio from "../PantallaJuicios/Pantallajuicios";
+import Pantallaresult from "../Pantallaresultado/Pantallaresultado";
 
 import "./Pageprincipal.css";
 
 function PagePrincipal({ handleLogout }) {
   const navigate = useNavigate();
+
+  // Declarar los estados file1 y file2
   const [file1, setFile1] = useState(null);
   const [file2, setFile2] = useState(null);
+
   const [currentScreen, setCurrentScreen] = useState("upload");
   const fileInputRef = useRef(null); 
 
@@ -36,44 +40,6 @@ function PagePrincipal({ handleLogout }) {
     window.scrollTo(0, 0);
   };
 
-  const handleSubmit = async () => {
-    if (!file1 || !file2) {
-      alert("Por favor, selecciona ambos archivos.");
-      return;
-    };
-
-    const formData = new FormData();
-    formData.append("file1", file1);
-    formData.append("file2", file2);
-
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/process-files/", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const contentType = response.headers.get("Content-Type");
-        if (contentType === "application/json") {
-          const result = await response.json();
-          console.log("Resultado:", result);
-        } else {
-          const blob = await response.blob(); 
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "resultado.xlsx";
-          a.click();
-          window.URL.revokeObjectURL(url);
-        }
-      } else {
-        console.error("Error en el servidor:", await response.text());
-      }
-    } catch (error) {
-      console.error("Error al procesar los archivos:", error);
-    }
-  };
-
   return (
     <div className="Contenedorprincipal">
       <div className="columnaizquierda">
@@ -94,20 +60,16 @@ function PagePrincipal({ handleLogout }) {
 
       <div className="contenedormitad">
         {currentScreen === "upload" && (
-          <>
-          
-            {/* Pantalla2 Component */}
-            <Pantallados
-              file1={file1}
-              setFile1={setFile1}
-              fileInputRef={fileInputRef}
-              handleRemoveFile1={handleRemoveFile1}
-              handleScreenChange={handleScreenChange}
-            />
-          </>
+          <Pantallados
+            file1={file1}
+            setFile1={setFile1}
+            fileInputRef={fileInputRef}
+            handleRemoveFile1={handleRemoveFile1}
+            handleScreenChange={handleScreenChange}
+          />
         )}
         
-        {currentScreen === "processing" && (
+        {currentScreen === "sofia" && (
           <Pantallatres
             file2={file2}
             setFile2={setFile2}
@@ -117,17 +79,18 @@ function PagePrincipal({ handleLogout }) {
           />
         )}
 
-        {currentScreen === "result" && (
-          <div className="resultScreen">
-            <h2>¡Procesamiento completado!</h2>
-            <p>Los resultados están listos para ser descargados.</p>
-            <button className="botonescontinuar" onClick={handleSubmit}>
-              <i className="fas fa-check-circle"></i> Descargar
-            </button>
-            <button className="botonescontinuar" onClick={() => handleScreenChange("upload")}>
-              Volver al inicio
-            </button>
-          </div>
+        {currentScreen === "juicios" && (
+          <Pantallajuicio
+            handleScreenChange={handleScreenChange}
+          />
+        )}
+
+        {currentScreen === "resultados" && (
+          <Pantallaresult
+            file1={file1}
+            file2={file2}
+            handleScreenChange={handleScreenChange}
+          />
         )}
       </div>
     </div>
