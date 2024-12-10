@@ -12,11 +12,6 @@ def procesar_archivo_instructores(file_instru, file_sofia):
     instru_df = pd.read_excel(file_instru, sheet_name="Validar nombre aprendiz", header=None, dtype=str)
     logger.info("Archivo de instructores leído correctamente.")
     
-    
-    
-    
-    
-
     # Validar que la celda D2 contiene el Código de Ficha
     logger.info("Extrayendo el Código de Ficha de la celda D2...")
     try:
@@ -29,17 +24,31 @@ def procesar_archivo_instructores(file_instru, file_sofia):
         raise ValueError("No se encontró la celda D2 en la hoja especificada.")
 
     # Procesar archivo de instructores
-    encabezados = instru_df.iloc[9]
-    instru_df = instru_df.iloc[10:]
+    if instru_df.iloc[9].isnull().any():
+        encabezados = instru_df.iloc[10]
+        instru_df = instru_df.iloc[11:]
+    else :
+        encabezados = instru_df.iloc[9]
+        instru_df = instru_df.iloc[10:]
+        
+        
     instru_df.columns = encabezados
     instru_df.reset_index(drop=True, inplace=True)
     
     instru_df.rename(columns={
+        #archivo 1
         "Tipo": "TIPO_INSTRU",
         "Documento de identificación": "DOCUMENTO_DE_IDENTIFICACION_INSTRU",
-        "Nombre completo SENA": "NOMBRE_COMPLETO_SENA_INSTRU"
+        "Nombre completo CONSULTA": "NOMBRE_COMPLETO_SENA_INSTRU",
+        #archivo2
+        "Documento de identidad":"DOCUMENTO_DE_IDENTIFICACION_INSTRU",
+        "Nombres y Apellidos PROCURADURÍA/REGISTRADURÍA":"NOMBRE_COMPLETO_SENA_INSTRU",
     }, inplace=True)
-    
+
+    # Log de las columnas que se están renombrando
+    logger.info("Renombrando las columnas en el archivo de instructores...")
+    logger.debug(f"Columnas renombradas: {instru_df.columns.tolist()}")
+
     instru_df.dropna(subset=["NOMBRE_COMPLETO_SENA_INSTRU", "DOCUMENTO_DE_IDENTIFICACION_INSTRU"], inplace=True)
 
     # Leer y procesar archivo Sofía
@@ -54,10 +63,17 @@ def procesar_archivo_instructores(file_instru, file_sofia):
         "Nombre Aprendiz": "NOMBRE_COMPLETO_SENA_SOFIA"
     }, inplace=True)
 
+    # Log de las columnas que se están renombrando en el archivo Sofía
+    logger.info("Renombrando las columnas en el archivo Sofía...")
+    logger.debug(f"Columnas renombradas: {sofia_df.columns.tolist()}")
+
     sofia_filtrado = sofia_df[sofia_df["FICHA"] == int(codigo_ficha)]
     if sofia_filtrado.empty:
         logger.error(f"No se encontraron registros en Sofía para la ficha {codigo_ficha}.")
         raise ValueError(f"No se encontraron registros en Sofía para la ficha {codigo_ficha}.")
+
+    # Log de las filas filtradas
+    logger.info(f"Filas filtradas en Sofía para la ficha {codigo_ficha}: {sofia_filtrado.shape[0]} filas.")
 
     # Preparar columnas de comparación
     instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"].apply(limpiar_documento)
@@ -70,6 +86,11 @@ def procesar_archivo_instructores(file_instru, file_sofia):
 
 def realizar_validacion(instru_df, sofia_filtrado):
     logger.info("Comenzando la validación y comparación de datos...")
+
+    # Log de las columnas que se están comparando
+    logger.debug(f"Columnas de Instructores: {instru_df.columns.tolist()}")
+    logger.debug(f"Columnas de Sofía: {sofia_filtrado.columns.tolist()}")
+
     validacion_df = pd.merge(
         instru_df,
         sofia_filtrado,
@@ -78,6 +99,9 @@ def realizar_validacion(instru_df, sofia_filtrado):
         how='outer',
         suffixes=('_instru', '_sofia')
     )
+
+    # Log de las filas del DataFrame resultante
+    logger.info(f"Total de registros después de la comparación: {validacion_df.shape[0]} filas.")
 
     validacion_df['COINCIDENCIA'] = validacion_df.apply(verificar_discrepancias, axis=1)
     validacion_df.drop_duplicates(subset=['DOCUMENTO_DE_IDENTIFICACION_COMP'], keep='first', inplace=True)

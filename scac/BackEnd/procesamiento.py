@@ -26,7 +26,7 @@ def procesar_archivos(file_instru, file_sofia):
             "TIPO_SOFIA": "Tipo Documento Sofía",
             "DOCUMENTO_DE_IDENTIFICACION_INSTRU": "No. Documento Instructores",
             "DOCUMENTO_DE_IDENTIFICACION_SOFIA": "No. Documento Sofía",
-            "NOMBRE_COMPLETO_SENA_INSTRU": "Nombre Aprendiz Instructores",
+            "NOMBRE_COMPLETO_SENA_INSTRU": "Nombre Aprendiz Instructores Consulta",
             "NOMBRE_COMPLETO_SENA_SOFIA": "Nombre Aprendiz Sofía",
             "COINCIDENCIA": "COINCIDENCIA"
         }, inplace=True)
