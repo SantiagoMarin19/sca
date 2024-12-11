@@ -3,8 +3,10 @@ import numpy as np
 from ComponentesBackEnd.logger_configuracion import logger
 
 def limpiar_documento(doc):
-    doc_str = str(doc).replace('E+', '').replace('.', '')
-    return ''.join(filter(str.isdigit, doc_str))
+    if pd.isna(doc):
+        return doc
+    return ''.join(filter(str.isdigit,str(doc)))
+
 
 def procesar_archivo_instructores(file_instru, file_sofia):
     # Leer archivo de instructores
@@ -77,10 +79,11 @@ def procesar_archivo_instructores(file_instru, file_sofia):
 
     # Preparar columnas de comparación
     instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"].apply(limpiar_documento)
-    sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"].apply(limpiar_documento)
+    sofia_filtrado.loc[:,"DOCUMENTO_DE_IDENTIFICACION_COMP"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"].apply(limpiar_documento)
     
     instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"]
-    sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"]
+    sofia_filtrado.loc[:,"DOCUMENTO_DE_IDENTIFICACION_SOFIA"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"]
+    
 
     return instru_df, sofia_filtrado
 
@@ -108,6 +111,21 @@ def realizar_validacion(instru_df, sofia_filtrado):
 
     return validacion_df
 
+
+def ajustar_nombre(nombre_instru, nombre_sofia):
+    if pd.isna(nombre_instru) or pd.isna(nombre_sofia):
+        return nombre_instru
+    
+    # Limpiar y ajustar ambos nombres
+    nombre_instru_limpio = ''.join([char if char.isupper() else ' ' + char for char in str(nombre_instru)]).strip().upper()
+    nombre_sofia_limpio = str(nombre_sofia).strip().replace(" ", "").upper()
+
+    # Comparar los nombres
+    if nombre_instru_limpio == nombre_sofia_limpio:
+        return nombre_sofia  # Si coinciden, devolver el nombre de Sofía
+    
+    return nombre_instru  # Si no coinciden, devolver el nombre del instructor
+
 def verificar_discrepancias(row):
     discrepancias = []
     
@@ -121,9 +139,21 @@ def verificar_discrepancias(row):
         if tipo_instru != tipo_sofia:
             discrepancias.append(f"Discrepancia en Tipo de Documento: Instructores ({tipo_instru}) vs Sofía ({tipo_sofia})")
         
-        nombre_instru = str(row['NOMBRE_COMPLETO_SENA_INSTRU']).strip()
-        nombre_sofia = str(row['NOMBRE_COMPLETO_SENA_SOFIA']).strip()
-        if nombre_instru != nombre_sofia:
+        # Obtener y ajustar los nombres
+        nombre_instru = str(row['NOMBRE_COMPLETO_SENA_INSTRU']).strip() if not pd.isna(row['NOMBRE_COMPLETO_SENA_INSTRU']) else ""
+        nombre_sofia = str(row['NOMBRE_COMPLETO_SENA_SOFIA']).strip() if not pd.isna(row['NOMBRE_COMPLETO_SENA_SOFIA']) else ""
+        
+        # Llamar a la función para ajustar el nombre si hay discrepancia
+        nombre_instru_ajustado = ajustar_nombre(nombre_instru, nombre_sofia)
+        
+        if nombre_instru_ajustado != nombre_sofia:
             discrepancias.append(f"Discrepancia en Nombre: Instructores ({nombre_instru}) vs Sofía ({nombre_sofia})")
-
+        
+        # Si los nombres coinciden, marcar como VERDADERO
+        if nombre_instru_ajustado == nombre_sofia:
+            return "VERDADERO"
+    
+    # Si hay discrepancias, retornarlas
     return "FALSO - " + "; ".join(discrepancias) if discrepancias else "VERDADERO"
+
+
