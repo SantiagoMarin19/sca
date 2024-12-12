@@ -79,14 +79,22 @@ function Pantallatres({ file2, setFile2, fileInputRef, handleRemoveFile2, handle
                             {file2.name}
                         </span>
                         <button className="delete-button" onClick={handleRemoveFile2}>x</button>
+                        
                     </div>
+                    <button className="botonesdescargar" onClick={() => handleScreenChange("resultados")}>Descargar</button>
+
                 </div>
             )}
 
-            <div className="buttonorganizado">
-                <button className="botonescontinuar" onClick={() => handleScreenChange("juicios")}>Siguiente</button>
-                <button className="botonescontinuar" onClick={() => handleScreenChange("upload")}>Volver</button>
-            </div>
+            {file2 && (
+                <div className="buttonorganizado">
+                    <button className="botonescontinuar" onClick={() => handleScreenChange("juicios")}>Continuar a Juicios</button>
+                </div>
+            )}
+            <button className="botonescontinuar" onClick={() => handleScreenChange("upload")}>Volver</button>
+
+
+
         </div>
     );
 }

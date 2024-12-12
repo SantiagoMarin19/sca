@@ -253,6 +253,19 @@ input {
     display: flex;
     gap: 10px;
 }
+.botonesdescargar{
+    margin-top: 20px;
+    align-items: center;
+    justify-content: center;
+    background-color: #0B1739;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
 
 .archivonombre .file-name {
     display: flex;
@@ -262,6 +275,7 @@ input {
 }
 
 .buttonorganizado {
+    gap:20px;
     display: flex;
     justify-content: center;
 }

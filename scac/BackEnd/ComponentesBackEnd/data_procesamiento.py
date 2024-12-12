@@ -26,9 +26,9 @@ def procesar_archivo_instructores(file_instru, file_sofia):
         raise ValueError("No se encontró la celda D2 en la hoja especificada.")
 
     # Procesar archivo de instructores
-    if instru_df.iloc[9].isnull().any():
-        encabezados = instru_df.iloc[10]
-        instru_df = instru_df.iloc[11:]
+    if instru_df.iloc[8].isnull().any():
+        encabezados = instru_df.iloc[9]
+        instru_df = instru_df.iloc[10:]
     else :
         encabezados = instru_df.iloc[9]
         instru_df = instru_df.iloc[10:]
