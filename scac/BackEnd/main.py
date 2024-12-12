@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.api import router as api_router
+from solicitudes import router as solicitudes_router 
+
 
 # Crear una instancia de FastAPI
 app = FastAPI()
@@ -16,6 +18,8 @@ app.add_middleware(
 
 # Registrar el router de la API
 app.include_router(api_router, prefix="/api")
+app.include_router(solicitudes_router, prefix="/api")  # Registrar el router de solicitudes
+
 
 # Ruta de prueba para verificar que el servidor está funcionando
 @app.get("/")

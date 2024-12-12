@@ -16,7 +16,31 @@ function PagePrincipal({ handleLogout }) {
   const [file2, setFile2] = useState(null);
 
   const [currentScreen, setCurrentScreen] = useState("upload");
+  const [codigoFicha, setCodigoFicha] = useState(null); // Nuevo estado para el código de ficha
   const fileInputRef = useRef(null); 
+
+
+  const handleFileUpload = async (file) => {
+    const formData = new FormData(); // Crear el formulario para enviar el archivo
+    formData.append("file_instru", file);
+  
+    try {
+      const response = await fetch("http://localhost:8000/api/get-codigo-ficha", {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        setCodigoFicha(data.codigo_ficha); // Actualiza el estado con el código de ficha recibido
+      } else {
+        console.error("Error al obtener el código de ficha.");
+      }
+    } catch (error) {
+      console.error("Error al enviar el archivo:", error);
+    }
+  };
+  
 
   const handleFile1Change = (e) => setFile1(e.target.files[0]);
   const handleFile2Change = (e) => setFile2(e.target.files[0]);
@@ -66,6 +90,8 @@ function PagePrincipal({ handleLogout }) {
             fileInputRef={fileInputRef}
             handleRemoveFile1={handleRemoveFile1}
             handleScreenChange={handleScreenChange}
+            handleFileUpload={handleFileUpload}
+            codigoFicha={codigoFicha} // Pasa la función para actualizar el código de ficha
           />
         )}
         
@@ -76,6 +102,7 @@ function PagePrincipal({ handleLogout }) {
             fileInputRef={fileInputRef}
             handleRemoveFile2={handleRemoveFile2}
             handleScreenChange={handleScreenChange}
+            codigoFicha={codigoFicha} // Pasa el código de ficha a la siguiente pantalla si es necesario
           />
         )}
 
@@ -90,6 +117,7 @@ function PagePrincipal({ handleLogout }) {
             file1={file1}
             file2={file2}
             handleScreenChange={handleScreenChange}
+            codigoFicha={codigoFicha} // También puede ser utilizado aquí
           />
         )}
       </div>

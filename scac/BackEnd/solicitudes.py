@@ -10,6 +10,7 @@ from io import BytesIO
 
 router = APIRouter()
 
+
 # Ruta de inicio de sesión
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):

@@ -2,12 +2,45 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from procesamiento import procesar_archivos
+from ComponentesBackEnd.logger_configuracion import logger
+import pandas as pd 
+
 
 import traceback
 import os
 from io import BytesIO
 
 router = APIRouter()
+
+
+@router.post("/get-codigo-ficha/")
+async def get_codigo_ficha(file_instru: UploadFile = File(...)):
+    """
+    Endpoint para extraer el Código de Ficha desde un archivo Excel.
+    """
+    try:
+        # Leer el archivo Excel
+        logger.info("Leyendo el archivo subido para extraer el Código de Ficha...")
+        instru_df = pd.read_excel(file_instru.file, sheet_name="Validar nombre aprendiz", header=None, dtype=str)
+
+        # Extraer la celda D2 (fila 1, columna 3 - índice basado en 0)
+        logger.info("Extrayendo el Código de Ficha de la celda D2...")
+        try:
+            codigo_ficha = instru_df.iloc[1, 3]
+            if pd.isna(codigo_ficha):
+                raise ValueError("La celda D2 está vacía o no contiene un Código de Ficha válido.")
+            logger.info(f"Código de Ficha identificado: {codigo_ficha}")
+        except IndexError:
+            logger.error("No se encontró la celda D2 en la hoja especificada.")
+            raise HTTPException(status_code=400, detail="El archivo no contiene la celda D2 requerida para obtener el Código de Ficha.")
+
+        # Devolver el Código de Ficha
+        return {"codigo_ficha": codigo_ficha}
+
+    except Exception as e:
+        logger.error(f"Error al procesar el archivo: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {str(e)}")
+
 
 # Ruta de inicio de sesión
 @router.post("/token")

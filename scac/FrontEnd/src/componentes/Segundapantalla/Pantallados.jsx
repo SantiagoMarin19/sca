@@ -3,7 +3,15 @@ import update from '../../assets/img/upload.png';
 import "../Pageprincipal/Pageprincipal.css";
 
 
-function Pantallados({ file1, setFile1, fileInputRef, handleRemoveFile1, handleScreenChange }) {
+function Pantallados({ file1, setFile1, fileInputRef, handleRemoveFile1, handleScreenChange ,handleFileUpload,codigoFicha }) {
+    const onFileChange = (e) =>{
+        const file = e.target.files[0];
+        setFile1(file);
+        handleFileUpload(file);
+    };
+    
+    
+    
     return (
         <div className="processingScreen">
             <div className="titulosca">
@@ -16,24 +24,24 @@ function Pantallados({ file1, setFile1, fileInputRef, handleRemoveFile1, handleS
                         ¡Bienvenido! Este asistente te guiará en el proceso de certificación de Aprendices.
                     </span>
                     <span className="spanbienvenida">
-                    Sube, carga o arrastra el archivo proporcionado por el instructor.
-                  </span>
+                        Sube, carga o arrastra el archivo proporcionado por el instructor.
+                    </span>
                     <span>Este archivo debe estar en formato .xlsx o .xls (excel).</span>
                     <span className="spanbienvenida">
                         Recomendaciones: asegúrate de que el archivo contenga celdas llenas y no tenga errores de formato.
                     </span>
                 </div>
                 <div className="listado">
-                <h3>¿Qué puedes hacer aquí?</h3>
-                <ul>
-                    <li>Cargar archivos .XLSX o .XLS verificación instructor</li>
-                    <li>Validar información de aprendices</li>
-                    <li>Generar reportes de validación</li>
-                    <li>Descargar resultados</li>
-                </ul>
+                    <h3>¿Qué puedes hacer aquí?</h3>
+                    <ul>
+                        <li>Cargar archivos .XLSX o .XLS verificación instructor</li>
+                        <li>Validar información de aprendices</li>
+                        <li>Generar reportes de validación</li>
+                        <li>Descargar resultados</li>
+                    </ul>
+                </div>
             </div>
-            </div>
-            
+
             <div className="contenedorcircle">
                 <div className="circle" id="uno">1</div>
                 <div className="circle">2</div>
@@ -51,6 +59,7 @@ function Pantallados({ file1, setFile1, fileInputRef, handleRemoveFile1, handleS
                         const file = e.dataTransfer.files[0];
                         if (file) {
                             setFile1(file);
+                            handleFileUpload(file);
                         }
                     }}
                     onDragOver={(e) => e.preventDefault()}
@@ -63,10 +72,22 @@ function Pantallados({ file1, setFile1, fileInputRef, handleRemoveFile1, handleS
                         className="hidden-input"
                         accept=".xlsx , .xls"
                         ref={fileInputRef}
-                        onChange={(e) => setFile1(e.target.files[0])}
+                        onChange={(e) => {
+                            const file = e.target.files[0];
+                            setFile1(file);
+                            handleFileUpload(file); // Llamar la función al subir archivo
+                        }}
                     />
                 </div>
             </div>
+            {codigoFicha && ( // Mostrar el código automáticamente
+                <div className="mensaje-codigo-ficha">
+                    <span className="span-codigo-ficha">
+                        Código de Ficha: {codigoFicha}
+                    </span>
+                </div>
+            )}
+           
             {file1 && (
                 <div className="archivonombre">
                     <span className="spanicono">
@@ -80,14 +101,20 @@ function Pantallados({ file1, setFile1, fileInputRef, handleRemoveFile1, handleS
                         <button className="delete-button" onClick={handleRemoveFile1}>x</button>
                     </div>
                 </div>
+                
             )}
+            
+            
             {file1 && (
                 <div className="buttonorganizado">
                     <button className="botonescontinuar" onClick={() => handleScreenChange("sofia")}>
                         CONTINUAR
                     </button>
                 </div>
+                
             )}
+            
+            
         </div>
     );
 }
