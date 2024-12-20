@@ -53,9 +53,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 # Ruta para procesar archivos
 @router.post("/process-files/")
-async def process_files(file1: UploadFile = File(...), file2: UploadFile = File(...)):
+async def process_files(file1: UploadFile = File(...), file2: UploadFile = File(...), file3: UploadFile = File(...)):
     """
-    Endpoint para procesar dos archivos Excel y devolver un archivo de resultado.
+    Endpoint para procesar tres archivos Excel y devolver un archivo de resultado.
     """
     try:
         # Ruta de la plantilla
@@ -64,7 +64,7 @@ async def process_files(file1: UploadFile = File(...), file2: UploadFile = File(
             raise HTTPException(status_code=500, detail="La plantilla no fue encontrada en el servidor.")
         
         # Procesar los archivos
-        resultado = procesar_archivos(file1.file, file2.file)
+        resultado = procesar_archivos(file1.file, file2.file, file3.file)
 
         # Comprobar si se generó correctamente el archivo
         if resultado is None:
