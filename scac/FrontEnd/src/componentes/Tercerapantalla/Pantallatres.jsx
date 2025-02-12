@@ -8,7 +8,7 @@ function Pantallatres({ file2, setFile2, fileInputRef, handleRemoveFile2, handle
             <div className="titulosca">
                 <h1 className="titusca">Bienvenido Al Modulo Archivo de Carga <img src={logosofia} alt="LogoSofia" className="LogoSofia" /></h1>
             </div>
-            <div className="mensajedebienvenida">
+            <div className="mensajedebienvenida" id="sofia">
                 <h2 className="tituloinstru">Modulo de Archivo Verificación de SofiaPlus</h2>
                 <div className="spanbienve">
                     <span className="spanbienvenida">
@@ -81,8 +81,7 @@ function Pantallatres({ file2, setFile2, fileInputRef, handleRemoveFile2, handle
                         <button className="delete-button" onClick={handleRemoveFile2}>x</button>
                         
                     </div>
-                    <button className="botonesdescargar" onClick={() => handleScreenChange("resultados")}>Descargar</button>
-
+                    <button className="botonesdescargar" onClick={() => handleScreenChange("instruSofia")}>Continuar a Comparación</button>
                 </div>
             )}
 
@@ -92,9 +91,6 @@ function Pantallatres({ file2, setFile2, fileInputRef, handleRemoveFile2, handle
                 </div>
             )}
             <button className="botonescontinuar" onClick={() => handleScreenChange("upload")}>Volver</button>
-
-
-
         </div>
     );
 }

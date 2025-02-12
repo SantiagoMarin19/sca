@@ -7,6 +7,98 @@ def limpiar_documento(doc):
         return doc
     return ''.join(filter(str.isdigit, str(doc)))
 
+
+
+
+def procesar_archivo_sin_juicios(file_instru,file_sofia):
+    instru_df = pd.read_excel(file_instru, sheet_name="Validar nombre aprendiz", header=None, dtype=str)
+    logger.info("Extrayendo el Código de Ficha de la celda D2...")
+    try:
+        codigo_ficha = instru_df.iloc[1, 3]
+        if pd.isna(codigo_ficha):
+            raise ValueError("La celda D2 está vacía o no contiene un Código de Ficha válido.")
+        logger.info(f"Código de Ficha identificado: {codigo_ficha}")
+    except IndexError:
+        logger.error("No se encontró la celda D2 en la hoja especificada.")
+        raise ValueError("No se encontró la celda D2 en la hoja especificada.")
+
+    # Procesar archivo de instructores
+    if instru_df.iloc[9].isnull().any():
+        encabezados = instru_df.iloc[10]
+        instru_df = instru_df.iloc[11:]
+    else:
+        encabezados = instru_df.iloc[9]
+        instru_df = instru_df.iloc[10:]
+        
+    instru_df.columns = encabezados
+    instru_df.reset_index(drop=True, inplace=True)
+    
+    instru_df.rename(columns={
+        # archivo 1
+        "Tipo": "TIPO_INSTRU",
+        "Documento de identificación": "DOCUMENTO_DE_IDENTIFICACION_INSTRU",
+        "Nombre completo CONSULTA": "NOMBRE_COMPLETO_SENA_INSTRU",
+        # archivo 2
+        "Documento de identidad": "DOCUMENTO_DE_IDENTIFICACION_INSTRU",
+        "Nombres y Apellidos PROCURADURÍA/REGISTRADURÍA": "NOMBRE_COMPLETO_SENA_INSTRU",
+    }, inplace=True)
+
+    # Log de las columnas que se están renombrando
+    logger.info("Renombrando las columnas en el archivo de instructores...")
+    logger.debug(f"Columnas renombradas: {instru_df.columns.tolist()}")
+
+    instru_df.dropna(subset=["NOMBRE_COMPLETO_SENA_INSTRU", "DOCUMENTO_DE_IDENTIFICACION_INSTRU"], inplace=True)
+    sofia_df = pd.read_excel(file_sofia, header=1)
+    sofia_df.rename(columns={
+        "Ficha": "FICHA",
+        "Tipo Programa": "TIPO_PROGRAMA",
+        "Nivel Formación": "NIVEL_FORMACION",
+        "Denominación Programa": "DENOMINACION_PROGRAMA",
+        "Tipo Documento": "TIPO_SOFIA",
+        "No. Documento": "DOCUMENTO_DE_IDENTIFICACION_SOFIA",
+        "Nombre Aprendiz": "NOMBRE_COMPLETO_SENA_SOFIA"
+    }, inplace=True)
+
+    # Log de las columnas que se están renombrando en el archivo Sofía
+    logger.info("Renombrando las columnas en el archivo Sofía...")
+    logger.debug(f"Columnas renombradas: {sofia_df.columns.tolist()}")
+
+    sofia_filtrado = sofia_df[sofia_df["FICHA"] == int(codigo_ficha)]
+    if sofia_filtrado.empty:
+        logger.error(f"No se encontraron registros en Sofía para la ficha {codigo_ficha}.")
+        raise ValueError(f"No se encontraron registros en Sofía para la ficha {codigo_ficha}.")
+
+    # Log de las filas filtradas
+    logger.info(f"Filas filtradas en Sofía para la ficha {codigo_ficha}: {sofia_filtrado.shape[0]} filas.")
+
+    # Preparar columnas de comparación
+    instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"].apply(limpiar_documento)
+    sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"].apply(limpiar_documento)
+    
+    instru_df["DOCUMENTO_DE_IDENTIFICACION_INSTRU"] = instru_df["DOCUMENTO_DE_IDENTIFICACION_COMP"]
+    sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_SOFIA"] = sofia_filtrado["DOCUMENTO_DE_IDENTIFICACION_COMP"]
+    
+    return instru_df, sofia_filtrado
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
 def procesar_archivo_instructores(file_instru, file_sofia, file_juicio):
     # Leer archivo de instructores
     logger.info("Leyendo el archivo de instructores...")

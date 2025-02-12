@@ -5,20 +5,21 @@ import Pantallados from "../Segundapantalla/Pantallados";
 import Pantallatres from "../Tercerapantalla/Pantallatres";
 import Pantallajuicio from "../PantallaJuicios/Pantallajuicios";
 import Pantallaresult from "../Pantallaresultado/Pantallaresultado";
+import PantallaInstruSofia from "../PantallaInstruSofia/PantallaInstruSofia";
 
 import "./Pageprincipal.css";
 
 function PagePrincipal({ handleLogout }) {
   const navigate = useNavigate();
 
-  // Declarar los estados file1 y file2
+  // Declarar los estados file1, file2 y file3
   const [file1, setFile1] = useState(null);
   const [file2, setFile2] = useState(null);
+  const [file3, setFile3] = useState(null);
 
   const [currentScreen, setCurrentScreen] = useState("upload");
   const [codigoFicha, setCodigoFicha] = useState(null); // Nuevo estado para el código de ficha
-  const fileInputRef = useRef(null); 
-
+  const fileInputRef = useRef(null);
 
   const handleFileUpload = async (file) => {
     const formData = new FormData(); // Crear el formulario para enviar el archivo
@@ -40,10 +41,10 @@ function PagePrincipal({ handleLogout }) {
       console.error("Error al enviar el archivo:", error);
     }
   };
-  
 
   const handleFile1Change = (e) => setFile1(e.target.files[0]);
   const handleFile2Change = (e) => setFile2(e.target.files[0]);
+  const handleFile3Change = (e) => setFile3(e.target.files[0]);
 
   const handleRemoveFile1 = () => {
     setFile1(null);
@@ -54,6 +55,13 @@ function PagePrincipal({ handleLogout }) {
 
   const handleRemoveFile2 = () => {
     setFile2(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveFile3 = () => {
+    setFile3(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -106,9 +114,23 @@ function PagePrincipal({ handleLogout }) {
           />
         )}
 
+        {currentScreen === "instruSofia" && (
+          <PantallaInstruSofia
+            file1={file1}
+            file2={file2}
+            handleScreenChange={handleScreenChange}
+          />
+        )}
+
         {currentScreen === "juicios" && (
           <Pantallajuicio
+            file3={file3}
+            setFile3={setFile3}
+            fileInputRef={fileInputRef}
+            handleRemoveFile3={handleRemoveFile3}
             handleScreenChange={handleScreenChange}
+            codigoFicha={codigoFicha} // Pasa el código de ficha a la siguiente pantalla si es necesario
+
           />
         )}
 
@@ -116,6 +138,7 @@ function PagePrincipal({ handleLogout }) {
           <Pantallaresult
             file1={file1}
             file2={file2}
+            file3={file3}
             handleScreenChange={handleScreenChange}
             codigoFicha={codigoFicha} // También puede ser utilizado aquí
           />

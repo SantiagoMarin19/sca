@@ -116,6 +116,12 @@ input {
 
 }
 
+#tres{
+    color: white;
+    background-color: #0B1739;
+
+}
+
 .contenedormitad {
     margin-left: 200px;
     /* Espacio igual al ancho de la columna fija */
@@ -126,6 +132,12 @@ input {
     width: calc(100% - 200px);
     /* Ajustar ancho al espacio restante */
     background-color: #fff;
+}
+
+
+
+#sofia {
+    background-color: #E0F6E5;
 }
 
 .mensajedebienvenida {

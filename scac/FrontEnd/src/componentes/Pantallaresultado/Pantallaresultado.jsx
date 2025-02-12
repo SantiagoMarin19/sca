@@ -1,15 +1,16 @@
 import React from "react";
 
-function Pantallaresult({ file1, file2, handleScreenChange }) {
+function Pantallaresult({ file1, file2, file3, handleScreenChange }) {
   const handleSubmit = async () => {
-    if (!file1 || !file2) {
-      alert("Por favor, selecciona ambos archivos.");
+    if (!file1 || !file2 || !file3) {
+      alert("Por favor, selecciona los tres archivos.");
       return;
     }
 
     const formData = new FormData();
     formData.append("file1", file1);
     formData.append("file2", file2);
+    formData.append("file3", file3);
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/process-files/", {

@@ -1,7 +1,7 @@
 import pandas as pd
 from ComponentesBackEnd.logger_configuracion import logger
 from ComponentesBackEnd.excel_utils import ajustar_ancho_columnas
-from ComponentesBackEnd.data_procesamiento import procesar_archivo_instructores, realizar_validacion
+from ComponentesBackEnd.data_procesamiento import procesar_archivo_instructores, realizar_validacion , procesar_archivo_sin_juicios
 
 def procesar_archivos(file_instru, file_sofia, file_juicio):
     try:
@@ -57,9 +57,9 @@ def procesar_archivos(file_instru, file_sofia, file_juicio):
         logger.error(f"Error en el procesamiento: {str(e)}")
         raise
 
-def procesar_archivos_sin_juicios(file_instru, file_sofia):
+def comparacion_archivos_sofia_instru(file_instru, file_sofia):
     try:
-        instru_df, sofia_filtrado, _ = procesar_archivo_instructores(file_instru, file_sofia, None)
+        instru_df, sofia_filtrado = procesar_archivo_sin_juicios(file_instru, file_sofia)
         validacion_df = realizar_validacion(instru_df, sofia_filtrado, pd.DataFrame())
 
         # Renombrar columnas y reordenar
@@ -84,7 +84,7 @@ def procesar_archivos_sin_juicios(file_instru, file_sofia):
             "NOMBRE_COMPLETO_SENA_INSTRU", "NOMBRE_COMPLETO_SENA_SOFIA"
         ]
         for columna in columnas_rellenar:
-            validacion_df[columna] = validacion_df[columna].replace("", "DATOS NO ENCONTRADOS").fillna("DATOS NO ENCONTRADOS")
+            validacion_df[columna] = validacion_df[columna].replace("", "No se encontraron datos").fillna("No se encontraron datos")
 
         validacion_df.rename(columns={
             "FICHA": "Ficha",
